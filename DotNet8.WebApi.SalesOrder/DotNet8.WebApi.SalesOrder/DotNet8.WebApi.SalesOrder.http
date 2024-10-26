@@ -1,0 +1,6 @@
+@DotNet8.WebApi.SalesOrder_HostAddress = http://localhost:5127
+
+GET {{DotNet8.WebApi.SalesOrder_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
