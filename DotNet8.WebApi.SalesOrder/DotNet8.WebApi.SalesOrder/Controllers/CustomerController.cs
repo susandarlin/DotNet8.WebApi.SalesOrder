@@ -40,6 +40,26 @@ public class CustomerController : ControllerBase
         }
     }
 
+    [HttpGet("{id}")]
+    public async Task<IActionResult> GetCustomerByIdAsync(Guid id)
+    {
+        try
+        {
+            var query = CustomerQuery.GetCustomerById;
+            using IDbConnection db = new SqlConnection(_configuration.GetConnectionString("DbConnection"));
+
+            var item = db.Query<Customer>(query, new Customer { customerId = id }).FirstOrDefault();
+            if (item is null)
+                return NotFound("No data found.");
+
+            return Ok(item);
+        }
+        catch (Exception ex)
+        {
+            throw new Exception(ex.Message);
+        }
+    }
+
     [HttpPost]
     public async Task<IActionResult> PostCustomerAsync(Customer customer)
     {
@@ -47,7 +67,7 @@ public class CustomerController : ControllerBase
         {
             string query = CustomerQuery.CreateCustomerQuery;
             var customerId = Guid.NewGuid();
-            customer.customerId = customerId.ToString();
+            customer.customerId = customerId;
             var parameters = new
             {
                 customer.customerId,
@@ -71,23 +91,11 @@ public class CustomerController : ControllerBase
         }
     }
 
-    //public Customer? FindById(string id)
-    //{
-    //    var item = new Customer();
-    //    var query = CustomerQuery.GetCustomerById;
-    //    using IDbConnection db = new SqlConnection(_configuration.GetConnectionString("DbConnection"));
-
-    //    item = db.Query<Customer>(query, new Customer { customerId = id }).FirstOrDefault();
-    //    return item;
-    //}
-
     [HttpPatch("id")]
-    public async Task<IActionResult> PatchCustomerAsync(string customerId, Customer customer)
+    public async Task<IActionResult> PatchCustomerAsync(Guid customerId, Customer customer)
     {
         try
         {
-            //var item = FindById(customerId);
-
             var query = CustomerQuery.GetCustomerById;
             using IDbConnection db = new SqlConnection(_configuration.GetConnectionString("DbConnection"));
 
@@ -123,7 +131,6 @@ public class CustomerController : ControllerBase
                         SET {conditions}
                         WHERE [customerId] = @customerId";
 
-            //using IDbConnection db = new SqlConnection(_configuration.GetConnectionString("DbConnection"));
             var result = await db.ExecuteAsync(query, customer);
 
             var message = result > 0 ? "Updating Successful." : "Updating Failed.";
@@ -136,4 +143,18 @@ public class CustomerController : ControllerBase
             throw new Exception(ex.Message);
         }
     }
+
+    //[HttpDelete("{id}")]
+    //public IActionResult DeleteCustomer(Guid id)
+    //{
+    //    var query = CustomerQuery.GetCustomerById;
+    //    using IDbConnection db = new SqlConnection(_configuration.GetConnectionString("DbConnection"));
+
+    //    var item = db.Query<Customer>(query, new Customer { customerId = id}).FirstOrDefault();
+    //    if (item is null)
+    //        return NotFound("No data found.");
+
+        
+    //}
 }
+
