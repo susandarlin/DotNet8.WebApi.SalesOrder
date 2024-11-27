@@ -139,22 +139,33 @@ public class CustomerController : ControllerBase
         }
         catch (Exception ex)
         {
-
             throw new Exception(ex.Message);
         }
     }
 
-    //[HttpDelete("{id}")]
-    //public IActionResult DeleteCustomer(Guid id)
-    //{
-    //    var query = CustomerQuery.GetCustomerById;
-    //    using IDbConnection db = new SqlConnection(_configuration.GetConnectionString("DbConnection"));
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> DeleteCustomerAsync(Guid id)
+    {
+        try
+        {
+            var query = CustomerQuery.GetCustomerById;
+            using IDbConnection db = new SqlConnection(_configuration.GetConnectionString("DbConnection"));
 
-    //    var item = db.Query<Customer>(query, new Customer { customerId = id}).FirstOrDefault();
-    //    if (item is null)
-    //        return NotFound("No data found.");
+            var item = db.Query<Customer>(query, new Customer { customerId = id }).FirstOrDefault();
+            if (item is null)
+                return NotFound("No data found.");
 
-        
-    //}
+            string deleteQuery = CustomerQuery.DeleteCustomerQuery;
+            var param = new { customerId = id };
+            int result = await db.ExecuteAsync(deleteQuery, param);
+            var message = result > 0 ? "Deleting Successful." : "Deleting Fail";
+
+            return Content(message);
+        }
+        catch (Exception ex)
+        {
+            throw new Exception(ex.Message);
+        }
+    }
 }
 

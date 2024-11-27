@@ -27,4 +27,9 @@ public class CustomerQuery
            ,@customerName
            ,@customerPhoneNo
            ,@customerAddress)";
+
+    public static string DeleteCustomerQuery { get; } =
+        @"Delete
+        FROM [dbo].[Customer]
+        WHERE [customerId] = @customerId";
 }
