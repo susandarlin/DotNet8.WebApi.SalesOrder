@@ -1,6 +1,7 @@
 ﻿using Dapper;
 using DotNet8.WebApi.SalesOrder.Models;
 using DotNet8.WebApi.SalesOrder.Queries;
+using DotNet8.WebApi.SalesOrder.Services;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Data;
@@ -13,11 +14,11 @@ namespace DotNet8.WebApi.SalesOrder.Controllers;
 [ApiController]
 public class CustomerController : ControllerBase
 {
-    private readonly IConfiguration _configuration;
+    private readonly DapperService _dapperService;
 
-    public CustomerController(IConfiguration configuration)
+    public CustomerController(DapperService dapperService)
     {
-        _configuration = configuration;
+        _dapperService = dapperService;
     }
 
     [HttpGet]
@@ -26,11 +27,7 @@ public class CustomerController : ControllerBase
         try
         {
             string query = CustomerQuery.GetCustomerListQuery;
-            using IDbConnection db = new SqlConnection(
-                _configuration.GetConnectionString("DbConnection")
-            );
-
-            var lst = await db.QueryAsync<Customer>(query);
+            var lst = await _dapperService.QueryAsync<Customer>(query);
 
             return Ok(lst);
         }
@@ -46,9 +43,7 @@ public class CustomerController : ControllerBase
         try
         {
             var query = CustomerQuery.GetCustomerById;
-            using IDbConnection db = new SqlConnection(_configuration.GetConnectionString("DbConnection"));
-
-            var item = db.Query<Customer>(query, new Customer { customerId = id }).FirstOrDefault();
+            var item = await _dapperService.QueryFirstOrDefaultAsync<Customer>(query, new Customer { customerId = id });
             if (item is null)
                 return NotFound("No data found.");
 
@@ -76,10 +71,7 @@ public class CustomerController : ControllerBase
                 customer.customerAddress,
             };
 
-            using IDbConnection db = new SqlConnection(
-                _configuration.GetConnectionString("DbConnection")
-            );
-            var result = await db.ExecuteAsync(query, parameters);
+            var result = await _dapperService.ExecuteAsync(query, parameters);
             string message = result > 0 ? "Saving Successful." : "Saving Failed";
 
             return Content(message);
@@ -97,9 +89,7 @@ public class CustomerController : ControllerBase
         try
         {
             var query = CustomerQuery.GetCustomerById;
-            using IDbConnection db = new SqlConnection(_configuration.GetConnectionString("DbConnection"));
-
-            var item = db.Query<Customer>(query, new Customer { customerId = customerId }).FirstOrDefault();
+            var item = await _dapperService.QueryFirstOrDefaultAsync<Customer>(query, new Customer { customerId = customerId });
             if (item is null)
             {
                 return NotFound("No data to Update.");
@@ -131,7 +121,7 @@ public class CustomerController : ControllerBase
                         SET {conditions}
                         WHERE [customerId] = @customerId";
 
-            var result = await db.ExecuteAsync(query, customer);
+            var result = await _dapperService.ExecuteAsync(query, customer);
 
             var message = result > 0 ? "Updating Successful." : "Updating Failed.";
             return Content(message);
@@ -149,15 +139,13 @@ public class CustomerController : ControllerBase
         try
         {
             var query = CustomerQuery.GetCustomerById;
-            using IDbConnection db = new SqlConnection(_configuration.GetConnectionString("DbConnection"));
-
-            var item = db.Query<Customer>(query, new Customer { customerId = id }).FirstOrDefault();
+            var item = _dapperService.QueryFirstOrDefaultAsync<Customer>(query, new Customer { customerId = id });
             if (item is null)
                 return NotFound("No data found.");
 
             string deleteQuery = CustomerQuery.DeleteCustomerQuery;
             var param = new { customerId = id };
-            int result = await db.ExecuteAsync(deleteQuery, param);
+            int result = await _dapperService.ExecuteAsync(deleteQuery, param);
             var message = result > 0 ? "Deleting Successful." : "Deleting Fail";
 
             return Content(message);
