@@ -56,16 +56,15 @@ public class CustomerController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<IActionResult> PostCustomerAsync(Customer customer)
+    public async Task<IActionResult> PostCustomerAsync(CustomerRequestModel customer)
     {
         try
         {
             string query = CustomerQuery.CreateCustomerQuery;
             var customerId = Guid.NewGuid();
-            customer.customerId = customerId;
             var parameters = new
             {
-                customer.customerId,
+                customerId,
                 customer.customerName,
                 customer.customerPhoneNo,
                 customer.customerAddress,
@@ -84,7 +83,7 @@ public class CustomerController : ControllerBase
     }
 
     [HttpPatch("id")]
-    public async Task<IActionResult> PatchCustomerAsync(Guid customerId, Customer customer)
+    public async Task<IActionResult> PatchCustomerAsync(Guid customerId, CustomerRequestModel requestModel)
     {
         try
         {
@@ -97,15 +96,15 @@ public class CustomerController : ControllerBase
 
             var conditions = string.Empty;
 
-            if (!string.IsNullOrEmpty(customer.customerName))
+            if (!string.IsNullOrEmpty(requestModel.customerName))
             {
                 conditions += " [customerName] = @customerName, ";
             }
-            if (!string.IsNullOrEmpty(customer.customerPhoneNo))
+            if (!string.IsNullOrEmpty(requestModel.customerPhoneNo))
             {
                 conditions += " [customerPhoneNo] = @customerPhoneNo, ";
             }
-            if (!string.IsNullOrEmpty(customer.customerAddress))
+            if (!string.IsNullOrEmpty(requestModel.customerAddress))
             {
                 conditions += " [customerAddress] = @customerAddress, ";
             }
@@ -115,13 +114,19 @@ public class CustomerController : ControllerBase
             }
 
             conditions = conditions.Substring(0, conditions.Length - 2);
-            customer.customerId = customerId;
 
+            var model = new Customer()
+            {
+                customerId = customerId,
+                customerName = requestModel.customerName,
+                customerPhoneNo = requestModel.customerPhoneNo,
+                customerAddress = requestModel.customerAddress
+            };
             query = $@"UPDATE [dbo].[Customer]
                         SET {conditions}
                         WHERE [customerId] = @customerId";
 
-            var result = await _dapperService.ExecuteAsync(query, customer);
+            var result = await _dapperService.ExecuteAsync(query, model);
 
             var message = result > 0 ? "Updating Successful." : "Updating Failed.";
             return Content(message);
