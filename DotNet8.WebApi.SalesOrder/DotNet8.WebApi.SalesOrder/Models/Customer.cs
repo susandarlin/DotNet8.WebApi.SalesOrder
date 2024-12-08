@@ -6,5 +6,6 @@
         public string? customerName { get; set; }
         public string? customerPhoneNo { get; set; }
         public string? customerAddress { get; set; }
+        public bool isDeleted { get; set; }
     }
 }

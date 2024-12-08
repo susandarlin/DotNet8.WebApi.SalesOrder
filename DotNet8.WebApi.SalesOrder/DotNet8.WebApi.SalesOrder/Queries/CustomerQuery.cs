@@ -7,12 +7,16 @@ public class CustomerQuery
               ,[customerName]
               ,[customerPhoneNo]
               ,[customerAddress]
-          FROM [dbo].[Customer]";
+              ,[isDeleted]
+          FROM [dbo].[Customer]
+          WHERE isDeleted = 0
+          ORDER BY customerId Desc";
 
     public static string GetCustomerById = @"SELECT [customerId]
                 ,[customerName]
                 ,[customerPhoneNo]
                 ,[customerAddress]
+                ,[isDeleted]
          FROM [dbo].[Customer]
          WHERE [customerId] = @customerId";
 
@@ -22,6 +26,7 @@ public class CustomerQuery
            ,[customerName]
            ,[customerPhoneNo]
            ,[customerAddress])
+           ,[isDeleted]
      VALUES
            (@customerId
            ,@customerName
@@ -29,7 +34,7 @@ public class CustomerQuery
            ,@customerAddress)";
 
     public static string DeleteCustomerQuery { get; } =
-        @"Delete
-        FROM [dbo].[Customer]
+        @"UPDATE [dbo].[Customer]
+        SET isDeleted = 1 
         WHERE [customerId] = @customerId";
 }

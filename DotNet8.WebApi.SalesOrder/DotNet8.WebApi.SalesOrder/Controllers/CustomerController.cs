@@ -149,7 +149,7 @@ public class CustomerController : ControllerBase
                 return NotFound("No data found.");
 
             string deleteQuery = CustomerQuery.DeleteCustomerQuery;
-            var param = new { customerId = id };
+            var param = new { customerId = id, isDeleted = true };
             int result = await _dapperService.ExecuteAsync(deleteQuery, param);
             var message = result > 0 ? "Deleting Successful." : "Deleting Fail";
 
