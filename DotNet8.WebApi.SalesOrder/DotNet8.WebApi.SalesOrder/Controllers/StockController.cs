@@ -30,6 +30,16 @@ public class StockController : ControllerBase
         }
     }
 
+    [HttpGet("{id}")]
+    public async Task<IActionResult> GetStockAsync(Guid id)
+    {
+        var stock = await _db.Stocks.FindAsync(id);
+        if (stock is null)
+            return NotFound("No data found.");
+
+        return Ok(stock);
+    }
+
     [HttpPost]
     public async Task<IActionResult> CreateStockAsync(StockRequestModel requestModel)
     {
@@ -44,6 +54,43 @@ public class StockController : ControllerBase
         var result = await _db.SaveChangesAsync();
 
         var message = result > 0 ? "Creating Successful." : "Creating Failed.";
+
+        return Ok(message);
+    }
+
+    [HttpPatch]
+    public async Task<IActionResult> UpdateStockAsync(Guid id, StockRequestModel requestModel)
+    {
+        var stock = await _db.Stocks.FindAsync(id);
+        if (stock is null)
+            return NotFound("No data found.");
+
+        if(!string.IsNullOrEmpty(requestModel.stockName))
+            stock.stockName = requestModel.stockName;
+        if(!string.IsNullOrEmpty(requestModel.stockDescription))
+            stock.stockDescription = requestModel.stockDescription;
+        if(requestModel.stockPrice > 0)
+            stock.stockPrice = requestModel.stockPrice;
+        if(requestModel.stockOnHandQty > 0)
+            stock.stockOnHandQty = requestModel.stockOnHandQty;
+
+        var result = await _db.SaveChangesAsync();
+
+        var message = result > 0 ? "Updating Successful." : "Creating Failed.";
+        return Ok(message);
+    }
+
+    [HttpDelete]
+    public async Task<IActionResult> DeleteAsync(Guid id)
+    {
+        var stock = _db.Stocks.FirstOrDefault(s => s.stockId == id);
+        if (stock is null)
+            return NotFound("No data found.");
+
+        _db.Stocks.Remove(stock!);
+        var result = await _db.SaveChangesAsync();
+
+        var message = result > 0 ? "Deleting Successful." : "Deleting Failed.";
 
         return Ok(message);
     }
